@@ -17,7 +17,8 @@ def create_app():
     from .routes.auth_routes import auth_bp
     from .routes.oferta_routes import oferta_bp
     from .routes.ubicacion_routes import ubicacion_bp
-
+    from .routes.main_routes import main_bp
+    app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(oferta_bp)
     app.register_blueprint(ubicacion_bp)

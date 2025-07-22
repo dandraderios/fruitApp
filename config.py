@@ -1,3 +1,8 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 class Config:
-    SECRET_KEY = 'tu_clave_secreta'
-    MONGO_URI = 'mongodb+srv://usuario:clave@cluster.mongodb.net/frutas?retryWrites=true&w=majority'
+    SECRET_KEY = os.getenv('SECRET_KEY')
+    MONGO_URI = os.getenv('MONGO_URI')
