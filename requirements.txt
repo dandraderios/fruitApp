@@ -3,4 +3,4 @@ flask-login
 flask-pymongo
 flask-cors
 firebase-admin
-dotenv
+python-dotenv
