@@ -4,6 +4,7 @@ from app.models.user import User
 from app import mongo
 from datetime import datetime
 from bson.objectid import ObjectId
+import config
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -63,7 +64,7 @@ def register_exportadora():
         flash("Exportadora registrada correctamente", "success")
         return redirect(url_for('admin.register_exportadora'))
 
-    return render_template('admin/register_exportadora.html')
+    return render_template('admin/register_exportadora.html', GOOGLE_MAPS_API_KEY=config.GOOGLE_MAPS_API_KEY)
 
 
 @admin_bp.route('/admin/exportadoras/<exportadora_id>/edit', methods=['GET', 'POST'])
@@ -112,4 +113,4 @@ def editar_exportadora(exportadora_id):
         flash('Exportadora actualizada correctamente.', 'success')
         return redirect(url_for('admin.index'))
 
-    return render_template('admin/edit_exportadora.html', exportadora=exportadora)
+    return render_template('admin/edit_exportadora.html', exportadora=exportadora, GOOGLE_MAPS_API_KEY=config.GOOGLE_MAPS_API_KEY)
