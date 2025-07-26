@@ -4,3 +4,6 @@ flask-pymongo
 flask-cors
 firebase-admin
 python-dotenv
+Flask-Mail
+Authlib
+geopy

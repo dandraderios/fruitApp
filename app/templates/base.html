@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.png') }}" type="image/x-icon">
+  <link src="{{url_for('static',filename='images/favicon.png')}}" rel="icon" type="image/x-icon" />
+  <title>{% block title %}FruitApp{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  {% block head %}{% endblock %}
+</head>
+<style>
+  .avatar-rounded {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+  }
+
+  @keyframes fadeOut {
+    to {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+  }
+  .flash-message {
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+  }
+
+  .flash-message.fade-out {
+    animation: fadeOut 1s forwards;
+  }
+</style>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar is-light" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="{{ url_for('main.index') }}">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="FruitApp" height="28">
+        <span class="ml-2 has-text-weight-bold">FruitApp</span>
+      </a>
+
+      <!-- Mobile burger -->
+      <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="mainNavbar">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </a>
+    </div>
+
+    <div id="mainNavbar" class="navbar-menu">
+      <div class="navbar-start">
+        <a class="navbar-item" href="{{ url_for('main.index') }}">Inicio</a>
+        <a class="navbar-item" href="{{ url_for('main.index') }}">Ofertas</a>
+        <a class="navbar-item" href="{{ url_for('main.index') }}">Contacto</a>
+      </div>
+
+      <div class="navbar-end">
+        {% if current_user.is_authenticated %}
+          <div class="navbar-item has-dropdown is-hoverable">
+            <a class="navbar-link is-flex is-align-items-center">
+            {% if current_user.profile_picture %}
+                <img class="avatar-rounded mr-2" src="{{ current_user.profile_picture }}" alt="Avatar">
+            {% else %}
+                <img class="avatar-rounded mr-2" src="https://cdn-icons-png.flaticon.com/64/149/149071.png" alt="Avatar por defecto">
+            {% endif %}
+            <span>{{ current_user.nombre }}</span>
+            </a>
+            <div class="navbar-dropdown is-right">
+              <a class="navbar-item" href="{{ url_for('auth.login') }}">Mi perfil</a>
+              <hr class="navbar-divider">
+              <a class="navbar-item" href="{{ url_for('auth.logout') }}">Cerrar sesión</a>
+            </div>
+          </div>
+        {% else %}
+          <div class="navbar-item">
+            <div class="buttons">
+              <a class="button is-primary" href="{{ url_for('auth.register') }}">
+                <strong>Registrarse</strong>
+              </a>
+              <a class="button is-light" href="{{ url_for('auth.login') }}">
+                Iniciar sesión
+              </a>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+    <!-- Flash Messages (compacto) -->
+    <div id="flash-container" class="container mt-4" style="max-width: 600px;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+            <div class="notification has-text-centered is-{{ 'danger' if category == 'error' else category }} flash-message">
+            <button class="delete"></button>
+            {{ message }}
+            </div>
+        {% endfor %}
+        {% endif %}
+    {% endwith %}
+    </div>
+
+  <!-- Main Content -->
+  {% block content %}{% endblock %}
+
+
+  {% block scripts %}
+  <!-- Scripts -->
+  <script>
+    // Navbar burger toggle
+    document.addEventListener('DOMContentLoaded', () => {
+      const burger = document.querySelector('.navbar-burger');
+      const menu = document.getElementById(burger.dataset.target);
+      burger.addEventListener('click', () => {
+        burger.classList.toggle('is-active');
+        menu.classList.toggle('is-active');
+      });
+    });
+    document.addEventListener('DOMContentLoaded', () => {
+    // Cierre manual
+    (document.querySelectorAll('.notification .delete') || []).forEach(($delete) => {
+        const $notification = $delete.parentNode;
+        $delete.addEventListener('click', () => {
+        $notification.classList.add('fade-out');
+        setTimeout(() => $notification.remove(), 500);
+        });
+    });
+
+    // Cierre automático en 5 segundos
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach((notif) => {
+        notif.classList.add('fade-out');
+        setTimeout(() => notif.remove(), 500); // esperar animación
+        });
+    }, 5000);
+    });
+  </script>
+  {% if current_user.is_authenticated %}
+  <script src="{{ url_for('static', filename='js/geoloc.js') }}"></script>
+  {% endif %}
+  {% endblock %}
+</body>
+</html>

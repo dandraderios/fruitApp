@@ -1,0 +1,253 @@
+{% extends 'admin/base.html' %}
+{% block title %}Editar Exportadora - FruitApp{% endblock %}
+
+{% block content %}
+<div class="card card-primary">
+  <div class="card-header">
+    <h3 class="card-title">Editar Exportadora {{ exportadora.razon_social }}</h3>
+  </div>
+  <form action="{{ url_for('admin.editar_exportadora', exportadora_id=exportadora._id) }}" method="POST">
+    <div class="card-body">
+
+      <div class="form-group">
+        <label>Razón Social</label>
+        <input type="text" name="razon_social" class="form-control" required value="{{ exportadora.razon_social }}">
+      </div>
+
+      <div class="form-group">
+        <label>RUT</label>
+        <input type="text" name="rut" class="form-control" required value="{{ exportadora.rut }}">
+      </div>
+
+      <div class="form-group">
+        <label>Dirección</label>
+        <input type="text" id="direccion" name="direccion" class="form-control" required value="{{ exportadora.direccion }}">
+      </div>
+
+      <div class="form-group">
+        <label>Región</label>
+        <select id="region" name="region" class="form-control" required>
+          <option value="{{ exportadora.region }}" selected>{{ exportadora.region }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Comuna</label>
+        <select id="comuna" name="comuna" class="form-control" required>
+          <option value="{{ exportadora.comuna }}" selected>{{ exportadora.comuna }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Coordenadas</label>
+        <div class="row">
+          <div class="col-md-6">
+            <input type="text" name="lat" class="form-control" placeholder="Latitud" required value="{{ exportadora.coordenadas.lat }}">
+          </div>
+          <div class="col-md-6">
+            <input type="text" name="lng" class="form-control" placeholder="Longitud" required value="{{ exportadora.coordenadas.lng }}">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Tipo</label>
+        <input type="text" name="tipo" class="form-control" placeholder="Ej: Uva, Manzana" value="{{ exportadora.tipo }}">
+      </div>
+
+      <div class="form-group">
+        <label>Estatus</label>
+        <select name="status" class="form-control" required>
+          <option value="enabled" {% if exportadora.status == 'enabled' %}selected{% endif %}>Habilitada</option>
+          <option value="disabled" {% if exportadora.status == 'disabled' %}selected{% endif %}>Deshabilitada</option>
+        </select>
+      </div>
+
+    <div class="form-group">
+    <label>Comisión (%) por tramos de monto</label>
+    <div id="comisiones-wrapper">
+        {% for tramo, porcentaje in exportadora.comisiones.items() %}
+        {% set desde, hasta = tramo.split('-') %}
+        <div class="row mb-2 comision-tramo">
+        <div class="col-md-4">
+            <input type="number" class="form-control" name="desde[]" placeholder="Desde ($)" required value="{{ desde }}">
+        </div>
+        <div class="col-md-4">
+            <input type="number" class="form-control" name="hasta[]" placeholder="Hasta ($)" required value="{{ hasta }}">
+        </div>
+        <div class="col-md-3">
+            <input type="number" step="0.01" class="form-control" name="porcentaje[]" placeholder="% Comisión" required value="{{ porcentaje }}">
+        </div>
+        <div class="col-md-1">
+            <button type="button" class="btn btn-danger btn-sm eliminar-tramo">🗑</button>
+        </div>
+        </div>
+        {% endfor %}
+    </div>
+    <button type="button" class="btn btn-primary btn-sm mt-2" id="agregar-tramo">
+        ➕ Agregar tramo
+    </button>
+    </div>
+
+      <div class="form-group">
+        <label>Nombre Contacto</label>
+        <input type="text" name="contacto" class="form-control" value="{{ exportadora.contacto }}">
+      </div>
+
+      <div class="form-group">
+        <label>Email Notificaciones</label>
+        <input type="email" name="email_notificaciones" class="form-control" value="{{ exportadora.email_notificaciones }}">
+      </div>
+
+      <div class="form-group">
+        <label>URL API</label>
+        <input type="url" name="url_api" class="form-control" value="{{ exportadora.api_config.url }}">
+      </div>
+
+      <div class="form-group">
+        <label>Usuario API</label>
+        <input type="text" name="user_api" class="form-control" value="{{ exportadora.api_config.user }}">
+      </div>
+
+      <div class="form-group">
+        <label>Clave API</label>
+        <input type="password" name="clave_api" class="form-control" value="{{ exportadora.api_config.clave }}">
+      </div>
+    </div>
+
+    <div class="card-footer">
+      <button type="submit" class="btn btn-primary">Actualizar Exportadora</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  async function cargarRegiones() {
+    const selectRegion = document.getElementById('region');
+    try {
+      const resp = await fetch('/regiones');
+      const regiones = await resp.json();
+      selectRegion.innerHTML = '<option value="">Seleccione una región</option>';
+      regiones.forEach(r => {
+        const opt = document.createElement('option');
+        opt.value = r.codigo;
+        opt.textContent = r.nombre;
+        selectRegion.appendChild(opt);
+      });
+    } catch(e) {
+      selectRegion.innerHTML = '<option value="">Error cargando regiones</option>';
+      console.error(e);
+    }
+  }
+
+  async function cargarComunas(regionCodigo) {
+    const selectComuna = document.getElementById('comuna');
+    selectComuna.innerHTML = '<option value="">Cargando comunas...</option>';
+    selectComuna.disabled = true;
+    try {
+      const resp = await fetch(`/comunas/${regionCodigo}`);
+      const comunas = await resp.json();
+      if (comunas.error) {
+        selectComuna.innerHTML = `<option value="">${comunas.error}</option>`;
+      } else {
+        selectComuna.innerHTML = '<option value="">Seleccione una comuna</option>';
+        comunas.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.nombre;
+          opt.textContent = c.nombre;
+          selectComuna.appendChild(opt);
+        });
+        selectComuna.disabled = false;
+      }
+    } catch (e) {
+      selectComuna.innerHTML = '<option value="">Error cargando comunas</option>';
+      console.error(e);
+    }
+  }
+
+  document.getElementById('region').addEventListener('change', e => {
+    const codigoRegion = e.target.value;
+    if (codigoRegion) {
+      cargarComunas(codigoRegion);
+    } else {
+      const selectComuna = document.getElementById('comuna');
+      selectComuna.innerHTML = '<option value="">Seleccione región primero</option>';
+      selectComuna.disabled = true;
+    }
+  });
+
+  //cargarRegiones();
+  
+ document.getElementById('agregar-tramo').addEventListener('click', () => {
+    const wrapper = document.getElementById('comisiones-wrapper');
+    const div = document.createElement('div');
+    div.classList.add('row', 'mb-2', 'comision-tramo');
+    div.innerHTML = `
+      <div class="col-md-4">
+        <input type="number" class="form-control" name="desde[]" placeholder="Desde ($)" required>
+      </div>
+      <div class="col-md-4">
+        <input type="number" class="form-control" name="hasta[]" placeholder="Hasta ($)" required>
+      </div>
+      <div class="col-md-3">
+        <input type="number" step="0.01" class="form-control" name="porcentaje[]" placeholder="% Comisión" required>
+      </div>
+      <div class="col-md-1">
+        <button type="button" class="btn btn-danger btn-sm eliminar-tramo"><i class="bi bi-x-circle-fill"></i></button>
+      </div>
+    `;
+    wrapper.appendChild(div);
+  });
+
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.eliminar-tramo')) {
+      e.target.closest('.comision-tramo').remove();
+    }
+  });
+</script>
+<script>
+  let autocomplete;
+
+  function initAutocomplete() {
+    const input = document.getElementById('direccion');
+    autocomplete = new google.maps.places.Autocomplete(input, {
+      types: ['geocode'],
+      componentRestrictions: { country: 'cl' } // Solo Chile
+    });
+
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      if (!place.geometry) return;
+
+      const lat = place.geometry.location.lat();
+      const lng = place.geometry.location.lng();
+      const subpremise = place.address_components.find(comp => comp.types.includes('subpremise'));
+      const administrativeArea = place.address_components.find(comp => comp.types.includes('administrative_area_level_1'));
+      const locality = place.address_components.find(comp => comp.types.includes('locality'));
+
+      // Asignar a los inputs correspondientes
+      document.querySelector('input[name="lat"]').value = lat;
+      document.querySelector('input[name="lng"]').value = lng;
+      if (subpremise) {
+        document.querySelector('input[name="detalle_direccion"]').value = subpremise.long_name;
+      } else {
+        document.querySelector('input[name="detalle_direccion"]').value = '';
+      }
+
+      if (administrativeArea) {
+        document.querySelector('input[name="region"]').value = administrativeArea.long_name;
+      }
+
+      if (locality) {
+        document.querySelector('input[name="comuna"]').value = locality.long_name;
+      }
+    });
+  }
+
+  // Inicializar cuando la API esté lista
+  window.initAutocomplete = initAutocomplete;
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBqrohpow6c6WTCyDs3pofmFSXisZRmVy8&libraries=places&callback=initAutocomplete" async defer></script>
+
+{% endblock %}

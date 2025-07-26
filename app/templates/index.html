@@ -1,13 +1,43 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>FruitApp - Inicio</title>
-</head>
-<body>
-  <h1>Bienvenido a FruitApp</h1>
-  <p>Obteniendo tu ubicación para mostrarte las ofertas más cercanas...</p>
+{% extends 'base.html' %}
 
-  <script src="{{ url_for('static', filename='js/geoloc.js') }}"></script>
-</body>
-</html>
+{% block title %}Inicio - FruitApp{% endblock %}
+
+{% block content %}
+  <section class="section">
+    <div class="container">
+      <div class="columns is-mobile is-centered">
+        <div class="column is-full-mobile is-8-tablet is-6-desktop">
+          <div class="box has-text-centered">
+            <h1 class="title is-3">
+              Bienvenido a <span class="has-text-primary">FruitApp</span>
+            </h1>
+            <p class="subtitle">
+              Obteniendo tu ubicación para mostrarte las ofertas más cercanas...
+            </p>
+            <progress class="progress is-small is-primary" max="100">Cargando</progress>
+          </div>
+
+          <!-- Caja para mostrar distancia -->
+          <div id="distancia-box" class="box has-text-centered mt-4" style="display:none;">
+            <div style="position: relative; height: 60px;">
+              <!-- Auto SVG -->
+              <svg id="auto-icon" width="40" height="40" viewBox="0 0 64 64" style="position: absolute; left: 0; top: 10px; transition: left 3s ease;">
+                <circle cx="32" cy="32" r="30" stroke="#48c774" stroke-width="3" fill="#a3d9a5" />
+                <rect x="20" y="25" width="24" height="14" fill="#2e7d32" />
+                <circle cx="24" cy="40" r="5" fill="#1b5e20"/>
+                <circle cx="40" cy="40" r="5" fill="#1b5e20"/>
+              </svg>
+
+              <!-- Punto destino -->
+              <svg width="20" height="20" viewBox="0 0 24 24" style="position: absolute; right: 0; top: 20px;">
+                <circle cx="12" cy="12" r="10" fill="#ff3860" />
+                <circle cx="12" cy="12" r="5" fill="#fff" />
+              </svg>
+            </div>
+            <p style="margin-top: 50px; font-weight: bold;" id="distancia-text"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

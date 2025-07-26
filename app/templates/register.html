@@ -1,6 +1,49 @@
-<form method="post">
-  <input type="text" name="name" placeholder="Nombre" required>
-  <input type="email" name="email" placeholder="Correo" required>
-  <input type="password" name="password" placeholder="Contraseña" required>
-  <button type="submit">Registrar</button>
-</form>
+{% extends 'base.html' %}
+
+{% block title %}Registro{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-full-mobile is-8-tablet is-6-desktop is-5-widescreen">
+        <div class="box">
+          <h1 class="title has-text-centered">Crear una cuenta</h1>
+          <form action="{{ url_for('auth.register') }}" method="post">
+            <div class="field">
+              <label class="label">Nombre</label>
+              <div class="control">
+                <input class="input" type="text" name="nombre" placeholder="Tu nombre completo" required>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">Correo electrónico</label>
+              <div class="control">
+                <input class="input" type="email" name="email" placeholder="ejemplo@correo.com" required>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">Contraseña</label>
+              <div class="control">
+                <input class="input" type="password" name="password" placeholder="Mínimo 6 caracteres" required>
+              </div>
+            </div>
+
+            <div class="field mt-4">
+              <div class="control">
+                <button type="submit" class="button is-primary is-fullwidth">Registrarse</button>
+              </div>
+            </div>
+
+            <div class="has-text-centered mt-3">
+              <a href="{{ url_for('auth.login') }}">¿Ya tienes una cuenta? Inicia sesión</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,5 +1,50 @@
-<form method="post">
-  <input type="email" name="email" placeholder="Correo" required>
-  <input type="password" name="password" placeholder="Contraseña" required>
-  <button type="submit">Ingresar</button>
-</form>
+{% extends 'base.html' %}
+
+{% block title %}Iniciar sesión{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-full-mobile is-8-tablet is-6-desktop is-5-widescreen">
+        <div class="box">
+          <h1 class="title has-text-centered">Iniciar sesión</h1>
+
+          <form action="{{ url_for('auth.login') }}" method="post">
+            <div class="field">
+              <label class="label">Correo electrónico</label>
+              <div class="control">
+                <input class="input" type="email" name="email" placeholder="ejemplo@correo.com" required>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">Contraseña</label>
+              <div class="control">
+                <input class="input" type="password" name="password" placeholder="Tu contraseña" required>
+              </div>
+            </div>
+
+            <div class="field mt-4">
+              <div class="control">
+                <button type="submit" class="button is-link is-fullwidth">Entrar</button>
+              </div>
+            </div>
+          </form>
+
+          <div class="has-text-centered mt-4">
+            <a href="{{ url_for('auth.login_google') }}"
+               class="button is-white is-fullwidth is-flex is-align-items-center justify-content-center"
+               style="border: 1px solid #ddd; color: #000; font-weight: 600;">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google logo" style="width:30px; height:30px; padding-right: 8px;">Iniciar sesión con Google</a>
+          </div>
+
+          <div class="has-text-centered mt-3">
+            <a href="{{ url_for('auth.register') }}">¿No tienes cuenta? Regístrate</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

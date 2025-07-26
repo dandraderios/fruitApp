@@ -1,0 +1,257 @@
+{% extends 'admin/base.html' %}
+{% block title %}Nueva Exportadora - FruitApp{% endblock %}
+
+{% block content %}
+<div class="card card-primary">
+  <div class="card-header">
+    <h3 class="card-title">Registrar Nueva Exportadora</h3>
+  </div>
+  <form action="{{ url_for('admin.register_exportadora') }}" method="POST">
+    <div class="card-body">
+
+      <div class="form-group">
+        <label>Razón Social</label>
+        <input type="text" name="razon_social" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label>RUT</label>
+        <input type="text" name="rut" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label>Dirección</label>
+        <input type="text" name="direccion" id="direccion" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label>Detalle Dirección</label>
+        <input type="text" name="detalle_direccion" class="form-control" placeholder="Ej: Oficina, Piso, etc.">
+      </div>
+
+      <div class="form-group">
+        <label>Región</label>
+        <input type="text" name="region" id="region" class="form-control" placeholder="Ej: Región Metropolitana" required readonly>
+      </div>
+
+      <div class="form-group">
+        <label>Comuna</label>
+        <input type="text" name="comuna" id="comuna" class="form-control" placeholder="Ej: Providencia" required readonly>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Coordenadas</label>
+        <div class="row">
+          <div class="col-md-6">
+            <input type="text" name="lat" class="form-control" placeholder="Latitud" required readonly>
+          </div>
+          <div class="col-md-6">
+            <input type="text" name="lng" class="form-control" placeholder="Longitud" required readonly>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Tipo</label>
+        <select name="tipo" class="form-control" required>
+          <option value="">Seleccione un tipo</option>
+          <option value="Planta">Planta</option>
+          <option value="Productor">Productor</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Estatus</label>
+        <select name="status" class="form-control" required>
+          <option value="enabled">Habilitada</option>
+          <option value="disabled">Deshabilitada</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Comisión (%) por tramos de monto</label>
+        <div id="comisiones-wrapper">
+          <div class="row mb-2 comision-tramo">
+            <div class="col-md-4">
+              <input type="number" class="form-control" name="desde[]" placeholder="Desde ($)" required>
+            </div>
+            <div class="col-md-4">
+              <input type="number" class="form-control" name="hasta[]" placeholder="Hasta ($)" required>
+            </div>
+            <div class="col-md-3">
+              <input type="number" step="0.01" class="form-control" name="porcentaje[]" placeholder="% Comisión" required>
+            </div>
+            <div class="col-md-1">
+              <button type="button" class="btn btn-danger btn-sm eliminar-tramo"><i class="bi bi-x-circle-fill"></i></button>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm mt-2" id="agregar-tramo">
+          <i class="bi bi-plus-square"></i> Agregar tramo
+        </button>
+      </div>
+
+
+      <div class="form-group">
+        <label>Nombre Contacto</label>
+        <input type="text" name="contacto" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label>Email Notificaciones</label>
+        <input type="email" name="email_notificaciones" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label>URL API</label>
+        <input type="url" name="url_api" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label>Usuario API</label>
+        <input type="text" name="user_api" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label>Clave API</label>
+        <input type="password" name="clave_api" class="form-control">
+      </div>
+    </div>
+
+    <div class="card-footer">
+      <button type="submit" class="btn btn-primary">Guardar Exportadora</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  async function cargarRegiones() {
+    const selectRegion = document.getElementById('region');
+    try {
+      const resp = await fetch('/regiones');
+      const regiones = await resp.json();
+      selectRegion.innerHTML = '<option value="">Seleccione una región</option>';
+      regiones.forEach(r => {
+        const opt = document.createElement('option');
+        opt.value = r.codigo;
+        opt.textContent = r.nombre;
+        selectRegion.appendChild(opt);
+      });
+    } catch(e) {
+      selectRegion.innerHTML = '<option value="">Error cargando regiones</option>';
+      console.error(e);
+    }
+  }
+
+  async function cargarComunas(regionCodigo) {
+    const selectComuna = document.getElementById('comuna');
+    selectComuna.innerHTML = '<option value="">Cargando comunas...</option>';
+    selectComuna.disabled = true;
+    try {
+      const resp = await fetch(`/comunas/${regionCodigo}`);
+      const comunas = await resp.json();
+      if (comunas.error) {
+        selectComuna.innerHTML = `<option value="">${comunas.error}</option>`;
+      } else {
+        selectComuna.innerHTML = '<option value="">Seleccione una comuna</option>';
+        comunas.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.nombre;
+          opt.textContent = c.nombre;
+          selectComuna.appendChild(opt);
+        });
+        selectComuna.disabled = false;
+      }
+    } catch (e) {
+      selectComuna.innerHTML = '<option value="">Error cargando comunas</option>';
+      console.error(e);
+    }
+  }
+
+  document.getElementById('region').addEventListener('change', e => {
+    const codigoRegion = e.target.value;
+    if (codigoRegion) {
+      cargarComunas(codigoRegion);
+    } else {
+      const selectComuna = document.getElementById('comuna');
+      selectComuna.innerHTML = '<option value="">Seleccione región primero</option>';
+      selectComuna.disabled = true;
+    }
+  });
+
+  //cargarRegiones();
+  
+ document.getElementById('agregar-tramo').addEventListener('click', () => {
+    const wrapper = document.getElementById('comisiones-wrapper');
+    const div = document.createElement('div');
+    div.classList.add('row', 'mb-2', 'comision-tramo');
+    div.innerHTML = `
+      <div class="col-md-4">
+        <input type="number" class="form-control" name="desde[]" placeholder="Desde ($)" required>
+      </div>
+      <div class="col-md-4">
+        <input type="number" class="form-control" name="hasta[]" placeholder="Hasta ($)" required>
+      </div>
+      <div class="col-md-3">
+        <input type="number" step="0.01" class="form-control" name="porcentaje[]" placeholder="% Comisión" required>
+      </div>
+      <div class="col-md-1">
+        <button type="button" class="btn btn-danger btn-sm eliminar-tramo"><i class="bi bi-x-circle-fill"></i></button>
+      </div>
+    `;
+    wrapper.appendChild(div);
+  });
+
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.eliminar-tramo')) {
+      e.target.closest('.comision-tramo').remove();
+    }
+  });
+</script>
+<script>
+  let autocomplete;
+
+  function initAutocomplete() {
+    const input = document.getElementById('direccion');
+    autocomplete = new google.maps.places.Autocomplete(input, {
+      types: ['geocode'],
+      componentRestrictions: { country: 'cl' } // Solo Chile
+    });
+
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      if (!place.geometry) return;
+
+      const lat = place.geometry.location.lat();
+      const lng = place.geometry.location.lng();
+      const subpremise = place.address_components.find(comp => comp.types.includes('subpremise'));
+      const administrativeArea = place.address_components.find(comp => comp.types.includes('administrative_area_level_1'));
+      const locality = place.address_components.find(comp => comp.types.includes('locality'));
+
+      // Asignar a los inputs correspondientes
+      document.querySelector('input[name="lat"]').value = lat;
+      document.querySelector('input[name="lng"]').value = lng;
+      if (subpremise) {
+        document.querySelector('input[name="detalle_direccion"]').value = subpremise.long_name;
+      } else {
+        document.querySelector('input[name="detalle_direccion"]').value = '';
+      }
+
+      if (administrativeArea) {
+        document.querySelector('input[name="region"]').value = administrativeArea.long_name;
+      }
+
+      if (locality) {
+        document.querySelector('input[name="comuna"]').value = locality.long_name;
+      }
+    });
+  }
+
+  // Inicializar cuando la API esté lista
+  window.initAutocomplete = initAutocomplete;
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBqrohpow6c6WTCyDs3pofmFSXisZRmVy8&libraries=places&callback=initAutocomplete" async defer></script>
+
+{% endblock %}
